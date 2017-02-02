@@ -14,17 +14,17 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Margin="3 3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <WrapPanel Margin="3 3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center">
+            <WrapPanel.Resources>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Margin" Value="3 3" />
+                </Style>
+            </WrapPanel.Resources>
             
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Font path : " />
                 <TextBox x:Name="FontPath" 
                          Text="{Binding FontPath}"
@@ -32,39 +32,32 @@
                          HorizontalAlignment="Stretch" />
             </StackPanel>
 
-            <StackPanel Grid.Column="1"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Search : " />
                 <TextBox Text="{Binding SearchCharacters, UpdateSourceTrigger=PropertyChanged}"
                          MinWidth="200"
                          HorizontalAlignment="Stretch" />
             </StackPanel>
 
-            <StackPanel Grid.Column="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Copy unicode code : " />
                 <CheckBox IsChecked="{Binding CopyUnicode}" />
             </StackPanel>
 
-            <StackPanel Grid.Column="3"
-                        Orientation="Horizontal"
+            <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Stretch">
                 <TextBlock Text="Color : " />
                 <TextBox Text="{Binding ColorText, UpdateSourceTrigger=PropertyChanged}"
-                         HorizontalAlignment="Stretch"
                          MinWidth="100" />
             </StackPanel>
 
-            <StackPanel Grid.Column="4"
-                        Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right">
                 <TextBlock Text="Exporter en PNG : " />
                 <Button Content="Exporter"
-                    Grid.Column="1"
                     Click="ExportToPngClicked" />
             </StackPanel>
-        </Grid>
+        </WrapPanel>
 
         <ScrollViewer Grid.Row="1">
             <ItemsControl x:Name="CharactersList" ItemsSource="{Binding GlyphInfos}">
