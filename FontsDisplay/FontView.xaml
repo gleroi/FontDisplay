@@ -19,6 +19,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             
@@ -48,6 +49,15 @@
             </StackPanel>
 
             <StackPanel Grid.Column="3"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Stretch">
+                <TextBlock Text="Color : " />
+                <TextBox Text="{Binding ColorText, UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalAlignment="Stretch"
+                         MinWidth="100" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="4"
                         Orientation="Horizontal">
                 <TextBlock Text="Exporter en PNG : " />
                 <Button Content="Exporter"
@@ -84,6 +94,7 @@
 
                                     <TextBlock Text="{Binding Character}"
                                                FontFamily="{Binding DataContext.Font, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:FontView}} }"
+                                               Foreground="{Binding DataContext.ColorBrush, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:FontView}} }"
                                                FontSize="64"
                                                Margin="3"
                                                Padding="0"

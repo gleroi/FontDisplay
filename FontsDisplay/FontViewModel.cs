@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 using Caliburn.Micro;
 using SharpFont;
 
@@ -65,6 +67,45 @@ namespace FontsDisplay
                 this.searchCharacters = value;
                 this.Initialize();
                 this.NotifyOfPropertyChange();
+            }
+        }
+
+        private string colorText;
+        public string ColorText
+        {
+            get { return this.colorText; }
+            set
+            {
+                if (value == this.colorText)
+                    return;
+                this.colorText = value;
+                this.NotifyOfPropertyChange(() => this.ColorText);
+                int color = 0;
+                if (int.TryParse(this.colorText.Trim().Replace("#", ""), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out color))
+                {
+                    byte a = (byte) (color >> 24 & 0xFF);
+                    byte r = (byte) (color >> 16 & 0xFF);
+                    byte g = (byte) (color >> 8 & 0xFF);
+                    byte b = (byte) (color & 0xFF);
+                    this.ColorBrush = new SolidColorBrush(Color.FromArgb(a == 0 ? (byte) 0xFF : a, r, g, b));
+                }
+                else
+                {
+                    this.ColorBrush = Brushes.Black;
+                }
+            }
+        }
+
+        private Brush colorBrush = Brushes.Black;
+        public Brush ColorBrush
+        {
+            get { return this.colorBrush; }
+            set
+            {
+                if (Equals(value, this.colorBrush))
+                    return;
+                this.colorBrush = value;
+                this.NotifyOfPropertyChange(() => this.ColorBrush);
             }
         }
 
