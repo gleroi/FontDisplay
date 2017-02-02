@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
@@ -65,7 +67,7 @@ namespace FontsDisplay
                     return;
                 }
                 this.searchCharacters = value;
-                this.Initialize();
+                this.Filter();
                 this.NotifyOfPropertyChange();
             }
         }
@@ -135,33 +137,61 @@ namespace FontsDisplay
             }
         }
 
+        public ObservableCollection<GlyphInfo> GlyphInfosAll { get; set; }
+
+
+        private void Filter()
+        {
+            this.GlyphInfos = new ObservableCollection<GlyphInfo>(this.GlyphInfosAll
+                .Where(info => this.SearchCharacters.Contains(info.Character) || info.Name.Contains(this.SearchCharacters))
+                .ToList());
+        }
+
+
+        private CancellationTokenSource cancellationSource;
         public void Initialize()
         {
             if (File.Exists(this.FontPath))
             {
-                var library = new Library();
-                using (var font = new Face(library, this.FontPath))
+                if (this.cancellationSource != null)
                 {
-                    var infos = new ObservableCollection<GlyphInfo>();
-                    uint glyphIndex = 0;
-                    uint character = font.GetFirstChar(out glyphIndex);
-                    while (glyphIndex != 0)
+                    this.cancellationSource.Cancel();
+                    this.cancellationSource.Dispose();
+                }
+                this.cancellationSource = new CancellationTokenSource();
+                Task.Factory.StartNew(obj => this.LoadFontInfos((CancellationToken)obj), this.cancellationSource.Token, TaskCreationOptions.LongRunning)
+                    .ContinueWith(task =>
                     {
-                        if (String.IsNullOrWhiteSpace(this.SearchCharacters) || this.SearchCharacters.Contains((char) character) ||
-                            (font.HasGlyphNames && font.GetGlyphName(glyphIndex, 32).Contains(this.SearchCharacters)))
+                        if (task.Status == TaskStatus.RanToCompletion)
                         {
-                            infos.Add(new GlyphInfo
-                            {
-                                Character = char.ConvertFromUtf32((int) character),
-                                Unicode = character,
-                                Name = font.HasGlyphNames ? font.GetGlyphName(glyphIndex, 32) : String.Empty
-                            });
+                            this.GlyphInfos = task.Result;
+                            this.GlyphInfosAll = task.Result;
                         }
-                        character = font.GetNextChar(character, out glyphIndex);
-                    }
-                    this.GlyphInfos = infos;
+                    }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+        }
+
+
+        private ObservableCollection<GlyphInfo> LoadFontInfos(CancellationToken token)
+        {
+            var infos = new ObservableCollection<GlyphInfo>();
+            var library = new Library();
+            using (var font = new Face(library, this.FontPath))
+            {
+                uint glyphIndex = 0;
+                uint character = font.GetFirstChar(out glyphIndex);
+                while (glyphIndex != 0 && !token.IsCancellationRequested)
+                {
+                    infos.Add(new GlyphInfo
+                    {
+                        Character = char.ConvertFromUtf32((int) character),
+                        Unicode = character,
+                        Name = font.HasGlyphNames ? font.GetGlyphName(glyphIndex, 32) : String.Empty
+                    });
+                    character = font.GetNextChar(character, out glyphIndex);
                 }
             }
+            return infos;
         }
 
         public void CopyToClipboard(GlyphInfo info)
