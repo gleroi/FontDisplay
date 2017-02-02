@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -11,7 +11,7 @@ namespace FontsDisplay
     public class FontViewModel : PropertyChangedBase
     {
         public FontViewModel()
-            : this(@"Resources/erdf2_v3.ttf") {}
+            : this(@"Resources/fontawesome-webfont.ttf") {}
 
         public FontViewModel(string path)
         {
@@ -33,12 +33,26 @@ namespace FontsDisplay
                 this.UpdateFontFamily(this.fontPath);
                 this.Initialize();
                 this.NotifyOfPropertyChange(() => this.FontPath);
-                this.NotifyOfPropertyChange(() => this.Characters);
                 this.NotifyOfPropertyChange(() => this.Font);
             }
         }
 
+        private bool copyUnicode;
+
+        public bool CopyUnicode
+        {
+            get { return this.copyUnicode; }
+            set
+            {
+                if (value == this.copyUnicode)
+                    return;
+                this.copyUnicode = value;
+                this.NotifyOfPropertyChange(() => this.CopyUnicode);
+            }
+        }
+
         private string searchCharacters;
+
         public string SearchCharacters
         {
             get { return this.searchCharacters; }
@@ -49,9 +63,8 @@ namespace FontsDisplay
                     return;
                 }
                 this.searchCharacters = value;
-                this.NotifyOfPropertyChange();
                 this.Initialize();
-                this.NotifyOfPropertyChange(nameof(Characters));
+                this.NotifyOfPropertyChange();
             }
         }
 
@@ -59,44 +72,67 @@ namespace FontsDisplay
         {
             var file = new FileInfo(path);
             var dir = file.DirectoryName;
-            var filename = Path.GetFileNameWithoutExtension(path);
-            this.Font = Path.Combine(dir, "#" + filename);
+            var library = new Library();
+            using (var font = new Face(library, path))
+            {
+                this.Font = Path.Combine(dir, "#" + font.FamilyName);
+            }
         }
 
         public string Font { get; private set; }
 
-        public Dictionary<string, uint> CharToGlyph { get; set; }
-
-        public IList<string> Characters
+        private ObservableCollection<GlyphInfo> glyphInfos;
+        public ObservableCollection<GlyphInfo> GlyphInfos
         {
-            get { return this.CharToGlyph.Keys.ToList(); }
+            get { return this.glyphInfos; }
+            set
+            {
+                if (object.Equals(value, this.glyphInfos))
+                    return;
+                this.glyphInfos = value;
+                this.NotifyOfPropertyChange(() => this.GlyphInfos);
+            }
         }
 
         public void Initialize()
         {
-            var library = new Library();
             if (File.Exists(this.FontPath))
             {
+                var library = new Library();
                 using (var font = new Face(library, this.FontPath))
                 {
-                    this.CharToGlyph = new Dictionary<string, uint>();
+                    var infos = new ObservableCollection<GlyphInfo>();
                     uint glyphIndex = 0;
                     uint character = font.GetFirstChar(out glyphIndex);
                     while (glyphIndex != 0)
                     {
-                        if (String.IsNullOrWhiteSpace(this.SearchCharacters) || this.SearchCharacters.Contains((char) character))
+                        if (String.IsNullOrWhiteSpace(this.SearchCharacters) || this.SearchCharacters.Contains((char) character) ||
+                            (font.HasGlyphNames && font.GetGlyphName(glyphIndex, 32).Contains(this.SearchCharacters)))
                         {
-                            this.CharToGlyph.Add(char.ConvertFromUtf32((int)character), character);
+                            infos.Add(new GlyphInfo
+                            {
+                                Character = char.ConvertFromUtf32((int) character),
+                                Unicode = character,
+                                Name = font.HasGlyphNames ? font.GetGlyphName(glyphIndex, 32) : String.Empty
+                            });
                         }
                         character = font.GetNextChar(character, out glyphIndex);
                     }
+                    this.GlyphInfos = infos;
                 }
             }
         }
 
-        public void CopyToClipboard(string character)
+        public void CopyToClipboard(GlyphInfo info)
         {
-            Clipboard.SetText(character, TextDataFormat.UnicodeText);
+            if (this.CopyUnicode)
+            {
+                Clipboard.SetText(info.Unicode.ToString("X4"), TextDataFormat.UnicodeText);
+            }
+            else
+            {
+                Clipboard.SetText(info.Character, TextDataFormat.UnicodeText);
+            }
         }
     }
 }

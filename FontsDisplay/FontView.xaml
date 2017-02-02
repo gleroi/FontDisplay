@@ -18,6 +18,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             
@@ -40,6 +41,13 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Stretch">
+                <TextBlock Text="Copy unicode code : " />
+                <CheckBox IsChecked="{Binding CopyUnicode}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="3"
                         Orientation="Horizontal">
                 <TextBlock Text="Exporter en PNG : " />
                 <Button Content="Exporter"
@@ -49,7 +57,7 @@
         </Grid>
 
         <ScrollViewer Grid.Row="1">
-            <ItemsControl x:Name="CharactersList" ItemsSource="{Binding CharToGlyph}">
+            <ItemsControl x:Name="CharactersList" ItemsSource="{Binding GlyphInfos}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="16" />
@@ -62,6 +70,7 @@
                                 Margin="3 3"
                                 BorderBrush="Black"
                                 BorderThickness="1"
+                                ToolTip="{Binding Name}"
                                 HorizontalContentAlignment="Stretch"
                                 VerticalContentAlignment="Stretch">
                             <Border>
@@ -73,7 +82,7 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Text="{Binding Key}"
+                                    <TextBlock Text="{Binding Character}"
                                                FontFamily="{Binding DataContext.Font, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:FontView}} }"
                                                FontSize="64"
                                                Margin="3"
@@ -90,14 +99,14 @@
                                           StrokeThickness="2" />
 
                                     <TextBlock Grid.Row="2"
-                                               Text="{Binding Key}"
+                                               Text="{Binding Character}"
                                                FontSize="24"
                                                TextAlignment="Center"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Center" />
                                     
                                     <TextBlock Grid.Row="3"
-                                               Text="{Binding Value, StringFormat={}{0:X8}}"
+                                               Text="{Binding Unicode, StringFormat={}{0:X4}}"
                                                FontSize="18"
                                                TextAlignment="Center"
                                                VerticalAlignment="Center"
