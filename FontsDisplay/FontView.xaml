@@ -1,0 +1,114 @@
+﻿<UserControl x:Class="FontsDisplay.FontView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:FontsDisplay"
+             xmlns:cal="http://www.caliburnproject.org"
+             d:DataContext="{x:Static local:DesignData.FontViewModel}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="3 3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Stretch">
+                <TextBlock Text="Font path : " />
+                <TextBox x:Name="FontPath" 
+                         Text="{Binding FontPath}"
+                         MinWidth="300"
+                         HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Stretch">
+                <TextBlock Text="Search : " />
+                <TextBox Text="{Binding SearchCharacters, UpdateSourceTrigger=PropertyChanged}"
+                         MinWidth="200"
+                         HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal">
+                <TextBlock Text="Exporter en PNG : " />
+                <Button Content="Exporter"
+                    Grid.Column="1"
+                    Click="ExportToPngClicked" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl x:Name="CharactersList" ItemsSource="{Binding CharToGlyph}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="16" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Background="Transparent"
+                                cal:Message.Attach="CopyToClipboard($dataContext)"
+                                Margin="3 3"
+                                BorderBrush="Black"
+                                BorderThickness="1"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch">
+                            <Border>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="{Binding Key}"
+                                               FontFamily="{Binding DataContext.Font, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:FontView}} }"
+                                               FontSize="64"
+                                               Margin="3"
+                                               Padding="0"
+                                               TextAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center" />
+
+                                    <Line Grid.Row="1"
+                                          Stretch="Fill"
+                                          X2="1"
+                                          VerticalAlignment="Bottom"
+                                          Stroke="Black"
+                                          StrokeThickness="2" />
+
+                                    <TextBlock Grid.Row="2"
+                                               Text="{Binding Key}"
+                                               FontSize="24"
+                                               TextAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center" />
+                                    
+                                    <TextBlock Grid.Row="3"
+                                               Text="{Binding Value, StringFormat={}{0:X8}}"
+                                               FontSize="18"
+                                               TextAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>
